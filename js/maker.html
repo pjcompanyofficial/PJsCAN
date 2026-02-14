@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PJ-ECC | Maker</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>QR GENERATOR</h2>
+        <div class="admin-panel" style="background:rgba(255,255,255,0.05); padding:20px; border-radius:15px;">
+            <input type="text" id="name" placeholder="Employee Name" style="width:100%; padding:10px; margin:5px 0;">
+            <input type="text" id="date" placeholder="Joining Date (DD-MM-YYYY)" style="width:100%; padding:10px; margin:5px 0;">
+            <input type="text" id="addr" placeholder="Address" style="width:100%; padding:10px; margin:5px 0;">
+            <input type="text" id="ref" placeholder="Ref No (PJ-XX/XX)" style="width:100%; padding:10px; margin:5px 0;">
+            <button onclick="gen()" class="btn btn-primary" style="width:100%; margin-top:10px;">GENERATE</button>
+            <center>
+                <div id="out" style="background:white; padding:15px; display:none; margin-top:20px; border-radius:10px;"></div>
+            </center>
+        </div>
+        <br><a href="index.html" style="color:gray;">← Back</a>
+    </div>
+    <script>
+        function gen() {
+            const n = document.getElementById('name').value;
+            const d = document.getElementById('date').value;
+            const a = document.getElementById('addr').value;
+            const r = document.getElementById('ref').value;
+            if(!n || !r) return alert("Details bharein!");
+
+            const out = document.getElementById('out');
+            out.innerHTML = ""; out.style.display = "inline-block";
+
+            const link = `https://pjcompanyofficial.github.io/pj-ecc/index.html?n=${encodeURIComponent(n)}&d=${encodeURIComponent(d)}&a=${encodeURIComponent(a)}&r=${encodeURIComponent(r)}`;
+            new QRCode(out, { text: link, width: 200, height: 200 });
+        }
+    </script>
+</body>
+</html>
