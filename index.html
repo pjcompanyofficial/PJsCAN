@@ -1,85 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PJ-ECC | Secure Portal</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="manifest" href="manifest.json">
-    <script src="https://unpkg.com/html5-qrcode"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRIJYA - PJ Company AI</title>
+
+<style>
+body{
+margin:0;
+background:black;
+overflow:hidden;
+font-family:Arial;
+color:white;
+}
+#ui{
+position:absolute;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+text-align:center;
+}
+button{
+padding:12px 25px;
+background:#111;
+color:white;
+border:1px solid cyan;
+border-radius:12px;
+font-size:16px;
+}
+</style>
 </head>
 <body>
-    <div class="background-overlay"></div>
-    <div class="container">
-        <header>
-            <div class="logo-wrapper">
-                <span class="logo-text">PJ-ECC</span>
-                <span class="tagline">EMPLOYMENT VERIFICATION</span>
-            </div>
-        </header>
 
-        <main id="app-content">
-            <section id="initial-screen">
-                <div class="status-box initializing">
-                    <p id="initial-status-message">System Ready for Verification</p>
-                </div>
-            </section>
+<div id="ui">
+<button onclick="startListening()">🎤 Talk to Prijya</button>
+</div>
 
-            <section id="verified-display" class="hidden">
-                <div class="result-card">
-                    <div class="holographic-overlay"></div>
-                    <div class="card-header">
-                        <span class="card-status verified">VERIFIED</span>
-                        <span class="card-ref" id="cardRefHeader"></span>
-                    </div>
-                    <div class="card-body">
-                        <div class="detail-item">
-                            <span class="label">Employee Name</span>
-                            <p class="value" id="dispName"></p>
-                        </div>
-                        <div class="detail-item">
-                            <span class="label">Joining Date</span>
-                            <p class="value" id="dispDate"></p>
-                        </div>
-                        <div class="detail-item">
-                            <span class="label">Address</span>
-                            <p class="value" id="dispAddr"></p>
-                        </div>
-                        <div class="detail-item">
-                            <span class="label">Internal Ref. No.</span>
-                            <p class="value primary-color" id="dispRef"></p>
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <button onclick="location.reload()" class="btn btn-secondary">NEW SCAN</button>
-                    </div>
-                </div>
-            </section>
+<!-- Three.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-            <section id="scanner-screen" class="hidden">
-                <div id="reader-wrapper">
-                    <div id="reader"></div>
-                </div>
-                <button onclick="location.reload()" class="btn btn-danger">CANCEL</button>
-            </section>
-        </main>
+<script>
 
-        <div class="action-buttons">
-            <button onclick="startScanner()" class="btn btn-primary">START SCANNER</button>
-            <button onclick="adminLogin()" class="btn btn-tertiary">ADMIN LOGIN</button>
-        </div>
-    </div>
+/* ===============================
+   🔐 OPENROUTER API (EXAMPLE KEY)
+   Replace before production
+=================================*/
+const OPENROUTER_API_KEY = "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";
 
-    <script src="js/engine.js"></script>
-    <script>
-        function adminLogin() {
-            const pass = prompt("🔐 Enter Admin Key:");
-            if (pass === "sonu@jeet") window.location.href = "maker.html";
-        }
-        if ('service-worker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js');
-        }
-    </script>
+/* ===============================
+   🎬 THREE JS 3D SCENE
+=================================*/
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.z = 5;
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Light
+const light = new THREE.PointLight(0xffffff, 1);
+light.position.set(5,5,5);
+scene.add(light);
+
+// Metallic Material
+const metallicMaterial = new THREE.MeshStandardMaterial({
+color:0x444444,
+metalness:1,
+roughness:0.3
+});
+
+// Head
+const head = new THREE.Mesh(new THREE.SphereGeometry(1,32,32), metallicMaterial);
+head.position.y = 1.5;
+scene.add(head);
+
+// Eyes
+const eyeMaterial = new THREE.MeshBasicMaterial({color:0x00aaff});
+const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.15,16,16), eyeMaterial);
+leftEye.position.set(-0.3,1.6,0.9);
+scene.add(leftEye);
+
+const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.15,16,16), eyeMaterial);
+rightEye.position.set(0.3,1.6,0.9);
+scene.add(rightEye);
+
+// Body
+const body = new THREE.Mesh(new THREE.CylinderGeometry(0.8,1,2,32), metallicMaterial);
+body.position.y = -0.2;
+scene.add(body);
+
+// Arms
+const armGeometry = new THREE.CylinderGeometry(0.15,0.15,2,32);
+
+const leftArm = new THREE.Mesh(armGeometry, metallicMaterial);
+leftArm.position.set(-1.2,0.5,0);
+leftArm.rotation.z = Math.PI/4;
+scene.add(leftArm);
+
+const rightArm = new THREE.Mesh(armGeometry, metallicMaterial);
+rightArm.position.set(1.2,0.5,0);
+rightArm.rotation.z = -Math.PI/4;
+scene.add(rightArm);
+
+// Bulb Object
+const bulbMaterial = new THREE.MeshBasicMaterial({color:0xffff00});
+const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.5,32,32), bulbMaterial);
+bulb.position.set(3,1,0);
+bulb.visible = false;
+scene.add(bulb);
+
+// Animation Loop
+function animate(){
+requestAnimationFrame(animate);
+renderer.render(scene,camera);
+}
+animate();
+
+/* ===============================
+   👁️ Eye Blink Animation
+=================================*/
+setInterval(()=>{
+leftEye.scale.y = 0.1;
+rightEye.scale.y = 0.1;
+setTimeout(()=>{
+leftEye.scale.y = 1;
+rightEye.scale.y = 1;
+},200);
+},4000);
+
+/* ===============================
+   🎤 SPEECH RECOGNITION
+=================================*/
+
+let recognition;
+let userLanguage = "en-US";
+
+function startListening(){
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+recognition = new SpeechRecognition();
+recognition.continuous = false;
+recognition.interimResults = false;
+
+recognition.onresult = async function(event){
+const text = event.results[0][0].transcript;
+beepSound();
+handleObjects(text);
+const reply = await getAIReply(text);
+speak(reply);
+};
+
+recognition.start();
+}
+
+function beepSound(){
+let audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+audio.play();
+}
+
+/* ===============================
+   🔊 SPEECH OUTPUT
+=================================*/
+
+function speak(text){
+let speech = new SpeechSynthesisUtterance(text);
+speech.lang = userLanguage;
+speech.onstart=()=>{waveArms();};
+speechSynthesis.speak(speech);
+}
+
+/* ===============================
+   🦾 Arm Wave
+=================================*/
+
+function waveArms(){
+let angle=0;
+let interval=setInterval(()=>{
+angle+=0.1;
+leftArm.rotation.z = Math.PI/4 + Math.sin(angle)*0.5;
+rightArm.rotation.z = -Math.PI/4 - Math.sin(angle)*0.5;
+},50);
+setTimeout(()=>clearInterval(interval),3000);
+}
+
+/* ===============================
+   💡 Object Handler
+=================================*/
+
+function handleObjects(text){
+if(text.toLowerCase().includes("bulb")){
+bulb.visible = true;
+}else{
+bulb.visible = false;
+}
+}
+
+/* ===============================
+   🧠 AI RESPONSE
+=================================*/
+
+async function getAIReply(userText){
+
+if(userText.toLowerCase().includes("pj company official dashboard")){
+return "PJ Company ka official dashboard abhi under construction hai. Ready hone par CEO dwara suchit kiya jayega. OTP email system aur secret lock system jald add hoga.";
+}
+
+try{
+const response = await fetch("https://openrouter.ai/api/v1/chat/completions",{
+method:"POST",
+headers:{
+"Authorization":"Bearer "+OPENROUTER_API_KEY,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+model:"openai/gpt-4o-mini",
+messages:[
+{role:"system",content:"You are Prijya, a cinematic female AI robot developed by PJ Company. Reply in same language as user."},
+{role:"user",content:userText}
+]
+})
+});
+const data = await response.json();
+return data.choices[0].message.content;
+
+}catch(error){
+return "Mujhe kshama karein. Kripya PJ Company se sampark karein: pjcompanyofficial@gmail.com";
+}
+
+}
+
+</script>
 </body>
 </html>
-
