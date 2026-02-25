@@ -1,0 +1,12 @@
+# Node.js
+node_modules/
+
+# Next.js
+.next/
+
+# IDEs
+*.code-workspace
+.vscode/
+.idea/
+*.iml
+*.sublime-*
