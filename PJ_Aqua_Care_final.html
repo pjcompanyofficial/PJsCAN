@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PJ Aqua Care</title>
+  <script src="https://cdn.tailwindcss.com">
+// Calculate safety score (simple logic)
+function calculateSafety(food){
+    let score = (food.protein + food.fat) - (food.ash + food.moisture);
+    let safePercent = Math.max(0, Math.min(100, score));
+    return safePercent;
+}
+
+</script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js">
+// Calculate safety score (simple logic)
+function calculateSafety(food){
+    let score = (food.protein + food.fat) - (food.ash + food.moisture);
+    let safePercent = Math.max(0, Math.min(100, score));
+    return safePercent;
+}
+
+</script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root{
+      --orange:#ff8a00;
+      --orange-2:#ffb347;
+      --green:#2f7d32;
+      --green-2:#3fa44a;
+      --bg:#f3f5f7;
+      --card:#ffffff;
+      --text:#17202a;
+      --muted:#64748b;
+      --line:#e7eaf0;
+      --shadow: 0 10px 30px rgba(18, 23, 38, .08);
+      --shadow-2: 0 18px 40px rgba(18, 23, 38, .14);
+      --radius: 24px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0; padding:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; overflow-x:hidden}
+    body{padding-bottom:92px}
+    button,input,select,textarea{font:inherit}
+    .app-shell{max-width:980px; margin:0 auto; min-height:100vh}
+    .topbar{
+      position:sticky; top:0; z-index:70;
+      backdrop-filter: blur(14px);
+      background: rgba(255,255,255,.84);
+      border-bottom:1px solid rgba(231,234,240,.95);
+    }
+    .topbar-inner{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:16px 18px}
+    .brand{display:flex; flex-direction:column; gap:3px}
+    .brand h1{margin:0; font-size:20px; letter-spacing:-.02em; font-weight:900; color:var(--green)}
+    .brand .meta{font-size:12px; color:var(--muted)}
+    .chip-row{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+    .chip{
+      border:1px solid var(--line); background:#fff; color:#334155;
+      padding:8px 12px; border-radius:999px; font-size:12px; font-weight:700;
+      box-shadow:0 3px 12px rgba(0,0,0,.03);
+    }
+    .chip.orange{background:linear-gradient(135deg,#fff2e4,#ffe6c8); color:#8b4f00; border-color:#ffd6a0}
+    .chip.green{background:linear-gradient(135deg,#edf9ef,#dff8e4); color:#165c1d; border-color:#beecc5}
+    .nav{
+      position:sticky; top:70px; z-index:60;
+      display:flex; gap:8px; padding:10px 12px;
+      background:rgba(248,250,252,.92); backdrop-filter: blur(14px);
+      border-bottom:1px solid var(--line);
+      overflow-x:auto;
+    }
+    .nav button{
+      flex:0 0 auto;
+      border:none; background:#fff; color:#475569; padding:12px 16px;
+      border-radius:999px; font-weight:800; letter-spacing:-.01em;
+      box-shadow:0 3px 14px rgba(0,0,0,.03);
+      border:1px solid var(--line);
+    }
+    .nav button.active{
+      background: linear-gradient(135deg, var(--orange), #ffab3c);
+      color:#fff; border-color:transparent;
+    }
+    main{padding:14px}
+    .page{display:none; animation:fade .22s ease}
+    .page.active{display:block}
+    @keyframes fade{from{opacity:.2; transform:translateY(8px)} to{opacity:1; transform:none}}
+    .card{
+      background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
+      border:1px solid rgba(231,234,240,.9); padding:18px; margin-bottom:14px;
+    }
+    .hero{
+      background: linear-gradient(135deg, #1f8a3e, #2fb463 55%, #f6fff7);
+      color:#fff; overflow:hidden; position:relative;
+    }
+    .hero::after{
+      content:""; position:absolute; inset:auto -80px -80px auto; width:220px; height:220px;
+      border-radius:50%; background:rgba(255,255,255,.1); filter:blur(1px);
+    }
+    .hero h2{margin:0 0 4px 0; font-size:24px; letter-spacing:-.03em}
+    .hero p{margin:0; opacity:.9; font-size:13px}
+    .hero-grid{display:grid; grid-template-columns:1.2fr .8fr; gap:12px; margin-top:14px}
+    .stat{
+      background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.18);
+      border-radius:18px; padding:12px;
+    }
+    .stat .label{font-size:11px; opacity:.92; text-transform:uppercase; letter-spacing:.08em}
+    .stat .value{font-size:18px; font-weight:900; margin-top:4px}
+    .section-title{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px}
+    .section-title h3{margin:0; font-size:16px; letter-spacing:-.02em}
+    .section-title .actions{display:flex; gap:8px}
+    .icon-btn{
+      width:38px; height:38px; border:none; border-radius:12px; background:#f1f5f9; color:#334155;
+      display:inline-flex; align-items:center; justify-content:center;
+    }
+    .icon-btn.orange{background:#fff4e5; color:#bf6700}
+    .icon-btn.green{background:#eaf8ed; color:#1b6e27}
+    table{width:100%; border-collapse:separate; border-spacing:0}
+    th,td{padding:12px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top}
+    th{font-size:12px; color:#64748b; text-transform:uppercase; letter-spacing:.08em; background:#fffaf2}
+    td{font-size:13px}
+    .tag{
+      display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:6px 10px;
+      font-size:12px; font-weight:800;
+    }
+    .tag.orange{background:#fff4e6; color:#a55500}
+    .tag.green{background:#eaf8ed; color:#1b6f27}
+    .tag.gray{background:#eef2f7; color:#334155}
+    .rule-box{
+      background:linear-gradient(180deg,#fff8ef,#fffdf9);
+      border:1px solid #ffdcb0; color:#7a4100;
+    }
+    .rule-box p{margin:8px 0 0 0; line-height:1.55; font-size:13px}
+    .hint{font-size:12px; color:var(--muted); line-height:1.5}
+    .missions{display:grid; gap:10px}
+    .mission{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+      border-radius:22px; padding:15px; border:1px solid var(--line); background:#fff;
+      box-shadow:var(--shadow);
+    }
+    .mission.done{opacity:.58; filter:saturate(.85)}
+    .mission .left{display:flex; gap:12px; align-items:flex-start}
+    .chk{
+      width:26px; height:26px; accent-color: var(--green);
+      margin-top:2px;
+    }
+    .mission h4{margin:0 0 4px 0; font-size:15px}
+    .mission p{margin:0; font-size:12px; color:var(--muted)}
+    .time-badge{
+      display:inline-flex; align-items:center; justify-content:center; margin-bottom:6px;
+      border-radius:999px; background:#e9f6ff; color:#155e83; padding:5px 9px; font-size:11px; font-weight:800;
+    }
+    .time-badge.wait{background:#fff0dd; color:#9a5500}
+    .time-badge.ready{background:#eaf8ed; color:#17662a}
+    .notice{
+      background:#f8fafc; border:1px solid var(--line); border-radius:18px; padding:12px; font-size:13px;
+      line-height:1.55;
+    }
+    .special{
+      border:2px dashed #ffb15a;
+      background:linear-gradient(180deg,#fffaf0,#fff);
+    }
+    .special.locked{opacity:.6; filter:grayscale(.1)}
+    .food-grid{display:grid; gap:12px}
+    .tank-card{
+      background:#fff; border:1px solid var(--line); border-radius:24px; padding:16px; box-shadow:var(--shadow);
+    }
+    .tank-head{display:flex; align-items:flex-start; justify-content:space-between; gap:12px}
+    .tank-title{display:flex; flex-direction:column; gap:4px}
+    .tank-title h4{margin:0; font-size:18px}
+    .tank-title .sub{font-size:12px; color:var(--muted)}
+    .mini{
+      display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:800;
+      padding:7px 10px; border-radius:999px; background:#f0fff4; color:#166534;
+    }
+    .tank-body{display:grid; grid-template-columns:120px 1fr; gap:14px; align-items:center; margin-top:12px}
+    .nutrition-list{display:grid; gap:6px}
+    .nutrition-row{display:flex; justify-content:space-between; gap:12px; font-size:12px; color:#334155}
+    .nutrition-row span:last-child{font-weight:800}
+    .tank-footer{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid var(--line)}
+    .toast-wrap{
+      position:fixed; top:90px; left:50%; transform:translateX(-50%);
+      z-index:200; display:grid; gap:10px; pointer-events:none; width:min(92vw,560px);
+    }
+    .toast{
+      pointer-events:auto;
+      background:#111827; color:#fff; border-radius:18px; padding:14px 16px;
+      box-shadow:var(--shadow-2);
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+      animation:drop .22s ease;
+    }
+    .toast.success{background:linear-gradient(135deg,#166534,#22c55e)}
+    .toast.warn{background:linear-gradient(135deg,#92400e,#f59e0b)}
+    .toast.error{background:linear-gradient(135deg,#7f1d1d,#ef4444)}
+    @keyframes drop{from{opacity:0; transform:translateY(-10px)} to{opacity:1; transform:none}}
+    .overlay{
+      position:fixed; inset:0; z-index:180; background:rgba(10,14,22,.55);
+      display:none; align-items:flex-end; justify-content:center; padding:14px;
+      backdrop-filter: blur(10px);
+    }
+    .overlay.show{display:flex}
+    .sheet{
+      width:min(100%,560px); background:#fff; border-radius:30px; box-shadow:var(--shadow-2);
+      max-height:92vh; overflow:auto; padding:18px;
+    }
+    .sheet h3{margin:0 0 8px 0; font-size:22px; letter-spacing:-.03em}
+    .sheet p{margin:0 0 12px 0; color:var(--muted); font-size:13px; line-height:1.5}
+    .field{display:grid; gap:7px; margin-bottom:12px}
+    .field label{font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:.08em; font-weight:800}
+    .field input,.field select,.field textarea{
+      width:100%; border:1px solid var(--line); background:#f8fafc; color:var(--text);
+      border-radius:16px; padding:13px 14px; outline:none;
+    }
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:#f6ab4d; box-shadow:0 0 0 4px rgba(255, 165, 0, .15)}
+    .btn-row{display:flex; gap:10px; margin-top:14px}
+    .btn{
+      border:none; border-radius:18px; padding:14px 16px; font-weight:900; letter-spacing:-.01em;
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      cursor:pointer;
+    }
+    .btn.orange{background:linear-gradient(135deg,var(--orange),#ffb347); color:#fff}
+    .btn.green{background:linear-gradient(135deg,var(--green),var(--green-2)); color:#fff}
+    .btn.gray{background:#eef2f7; color:#334155}
+    .btn.red{background:#fee2e2; color:#991b1b}
+    .btn.full{width:100%}
+    .fixed-fab{
+      position:fixed; right:18px; bottom:18px; width:58px; height:58px; border-radius:20px; z-index:120;
+      border:none; color:#fff; background:linear-gradient(135deg,var(--orange),#ffb347);
+      box-shadow:var(--shadow-2); font-size:22px;
+    }
+    .fixed-fab.green{background:linear-gradient(135deg,var(--green),var(--green-2))}
+    .bottom-sheet-actions{display:flex; gap:10px; margin-top:12px}
+    .muted{color:var(--muted)}
+    .hidden{display:none !important}
+    .ai-chat{display:grid; gap:10px}
+    .chat-box{
+      min-height:240px; max-height:380px; overflow:auto; border:1px solid var(--line);
+      background:#fbfcfe; border-radius:24px; padding:14px; display:grid; gap:10px;
+    }
+    .bubble{
+      max-width:92%; border-radius:18px; padding:12px 13px; line-height:1.5; font-size:13px;
+      white-space:pre-wrap;
+    }
+    .bubble.user{margin-left:auto; background:#e8f5ff; color:#0f172a}
+    .bubble.bot{margin-right:auto; background:#eef7ee; color:#0f172a}
+    .bubble.err{margin-right:auto; background:#fee2e2; color:#7f1d1d}
+    .small{font-size:11px}
+    .swipe-hint{font-size:11px; color:#94a3b8; padding:0 18px 8px}
+    @media (max-width: 640px){
+      .hero-grid{grid-template-columns:1fr}
+      .tank-body{grid-template-columns:1fr}
+      .topbar-inner{padding:14px 14px}
+      main{padding:12px}
+      .nav{top:68px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <h1>PJ AQUA CARE</h1>
+          <div class="meta" id="todayMeta">Loading...</div>
+        </div>
+        <div class="chip-row">
+          <span class="chip orange" id="tankChip">0 L Tank</span>
+          <span class="chip green" id="planChip">Basic Plan</span>
+          <button class="icon-btn" id="settingsBtn" title="Settings"><i class="fa-solid fa-gear"></i></button>
+        </div>
+      </div>
+    </header>
+
+    <div class="nav" id="navBar">
+      <button class="active" data-page="guidancePage"><i class="fa-solid fa-table-list"></i> Guidance</button>
+      <button data-page="missionsPage"><i class="fa-solid fa-list-check"></i> Missions</button>
+      <button data-page="foodPage"><i class="fa-solid fa-fish-fins"></i> Food Tracker</button>
+      <button data-page="aiPage"><i class="fa-solid fa-wand-magic-sparkles"></i>  Helper</button>
+    </div>
+    <div class="swipe-hint">Swipe left or right to switch pages</div>
+
+    <main>
+      <section id="guidancePage" class="page active">
+        <div class="card hero">
+          <h2>Tank Setup & Dosing Guidance</h2>
+          <p>Start with the setup popup, enter tank size in cm, water fill height in cm, and glass thickness in mm.</p>
+          <div class="hero-grid">
+            <div class="stat">
+              <div class="label">Current Volume</div>
+              <div class="value" id="volumeText">0 L</div>
+            </div>
+            <div class="stat">
+              <div class="label">Schedule Mode</div>
+              <div class="value" id="modeText">Basic Non-CO2</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">
+            <h3>Dosing Table</h3>
+            <div class="actions">
+              <button class="icon-btn orange" id="readRuleBtn" title="Read rules"><i class="fa-solid fa-volume-high"></i></button>
+              <button class="icon-btn green" id="translateRuleBtn" title="Translate rules"><i class="fa-solid fa-language"></i></button>
+            </div>
+          </div>
+          <div class="tag gray" id="scaleTag">Scaled to your tank size</div>
+          <div style="overflow:auto; margin-top:12px;">
+            <table>
+              <thead>
+                <tr>
+                  <th style="min-width:110px">Day</th>
+                  <th>Medicine</th>
+                  <th style="min-width:92px">Dose</th>
+                  <th style="min-width:170px">Notes</th>
+                </tr>
+              </thead>
+              <tbody id="doseTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card rule-box">
+          <div class="section-title" style="margin-bottom:4px;">
+            <h3 style="font-size:15px;">Guideline Rules</h3>
+            <span class="tag orange">Voice + Translate</span>
+          </div>
+          <p id="ruleText">
+            Always keep a 2-hour gap between different liquid medicines. Sunday is the main water-change day. Use the 30th of each month for special treatment only. Adjust the schedule by tank volume automatically.
+          </p>
+        </div>
+
+        <div class="card notice">
+          <strong>Water change hint:</strong> The app keeps the Sunday 50% water-change rule visible so you can follow the chart without guessing.
+        </div>
+      </section>
+
+      <section id="missionsPage" class="page">
+        <div class="card hero">
+          <h2>Today's Missions</h2>
+          <p id="missionDayText">Loading...</p>
+          <div class="hero-grid">
+            <div class="stat">
+              <div class="label">Mission Start</div>
+              <div class="value" id="startTimeLabel">08:00 AM</div>
+            </div>
+            <div class="stat">
+              <div class="label">Status</div>
+              <div class="value" id="missionStatusLabel">Ready</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="missions" id="missionList"></div>
+
+        <div class="card special" id="specialDoseCard">
+          <div class="section-title">
+            <h3>Month-End Special Treatment</h3>
+            <span class="tag gray" id="specialTag">Locked</span>
+          </div>
+          <div class="hint">This opens only on date 30 of every month.</div>
+          <div class="missions" style="margin-top:12px;">
+            <div class="mission">
+              <div class="left">
+                <input type="checkbox" class="chk" id="specialChk" disabled>
+                <div>
+                  <h4>K++</h4><p id="specialK">1.5 ml</p>
+                </div>
+              </div>
+              <div class="right"><span class="time-badge" id="specialTime">30th only</span></div>
+            </div>
+            <div class="mission">
+              <div class="left">
+                <input type="checkbox" class="chk" id="specialChk2" disabled>
+                <div>
+                  <h4>MicroLife-S2</h4><p id="specialMicro">5 ml</p>
+                </div>
+              </div>
+              <div class="right"><span class="time-badge" id="specialTime2">30th only</span></div>
+            </div>
+            <div class="mission">
+              <div class="left">
+                <input type="checkbox" class="chk" id="specialChk3" disabled>
+                <div>
+                  <h4>Stress Heal</h4><p id="specialStress">5 ml</p>
+                </div>
+              </div>
+              <div class="right"><span class="time-badge" id="specialTime3">30th only</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="foodPage" class="page">
+        <div class="card hero">
+          <h2>Food Tracker</h2>
+          <p>Add tanks, set feeding frequency, and store nutrition percentages for each food.</p>
+          <div class="hero-grid">
+            <div class="stat">
+              <div class="label">Saved Tanks</div>
+              <div class="value" id="tankCountText">0</div>
+            </div>
+            <div class="stat">
+              <div class="label">Sunday Rule</div>
+              <div class="value">Dieting Day</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="food-grid" id="tankList"></div>
+      </section>
+
+      <section id="aiPage" class="page">
+        <div class="card hero">
+          <h2> Tank Helper</h2>
+          <p>Use your  key to ask about dosing, tank setup, and food plans. A safe fallback message appears if the key is missing.</p>
+          <div class="hero-grid">
+            <div class="stat">
+              <div class="label"> Status</div>
+              <div class="value" id="aiStatus">Not connected</div>
+            </div>
+            <div class="stat">
+              <div class="label">Model</div>
+              <div class="value" id="aiModelLabel">Qwen/Qwen3-4B</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card ai-chat">
+          <div class="chat-box" id="chatBox">
+            <div class="bubble bot">Ask me anything about planted tank dosing, tank size, or feeding schedules.</div>
+          </div>
+          <div class="field">
+            <label>Prompt</label>
+            <textarea id="aiPrompt" rows="4" placeholder="Example: My tank is 75L basic non-CO2. What should I dose today?"></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="btn gray full" id="fillPromptBtn"><i class="fa-solid fa-bolt"></i> Use current tank context</button>
+            <button class="btn orange full" id="askAiBtn"><i class="fa-solid fa-paper-plane"></i> Ask </button>
+          </div>
+          <div class="hint"> uses an Open-compatible base URL in its docs. The app sends chat-completion style requests when a key is provided, and keeps your key in local storage on your device only. citeturn295757search0turn295757search2</div>
+        </div>
+      </section>
+    </main>
+
+    <button class="fixed-fab" id="addTankFab" title="Add tank"><i class="fa-solid fa-plus"></i></button>
+
+    <div class="toast-wrap" id="toastWrap"></div>
+  </div>
+
+  <!-- Setup Modal -->
+  <div class="overlay show" id="setupOverlay">
+    <div class="sheet">
+      <h3>Tank Configuration</h3>
+      <p>Enter everything in English labels. This popup appears first when the app opens.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="field">
+          <label>Tank Length (cm)</label>
+          <input type="number" id="tankLength" placeholder="Example: 60" />
+        </div>
+        <div class="field">
+          <label>Water Fill Height (cm)</label>
+          <input type="number" id="waterHeight" placeholder="Example: 40" />
+        </div>
+        <div class="field">
+          <label>Tank Width (cm)</label>
+          <input type="number" id="tankWidth" placeholder="Example: 30" />
+        </div>
+        <div class="field">
+          <label>Glass Thickness (mm)</label>
+          <input type="number" id="glassThickness" placeholder="Example: 6" />
+        </div>
+        <div class="field md:col-span-2">
+          <label>Schedule Mode</label>
+          <select id="planMode">
+            <option value="basic">Basic Non-CO2</option>
+            <option value="moderate">Moderate CO2</option>
+            <option value="pro">Professional CO2</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+
+        <button class="btn orange full" id="continueSetupBtn">Continue</button>
+      </div>
+      <p class="small muted" style="margin-top:10px;">Tip: the app scales the 100L dosage reference to your tank volume automatically.</p>
+    </div>
+  </div>
+
+  <!-- Settings Sheet -->
+  <div class="overlay" id="settingsOverlay">
+    <div class="sheet">
+      <h3>Settings</h3>
+      <p>Change mission start time, notification permission, mode, and   key.</p>
+      <div class="field">
+        <label>Daily Mission Start Time</label>
+        <input type="time" id="startTimeInput" value="08:00" />
+      </div>
+      <div class="field">
+        <label>Plan Mode</label>
+        <select id="modeInput">
+          <option value="basic">Basic Non-CO2</option>
+          <option value="moderate">Moderate CO2</option>
+          <option value="pro">Professional CO2</option>
+        </select>
+      </div>
+      <div class="field">
+        <label> API Key</label>
+        <input type="password" id="bytezKeyInput" placeholder="Paste your  key here" />
+      </div>
+      <div class="field">
+        <label> Model</label>
+        <input type="text" id="bytezModelInput" value="Qwen/Qwen3-4B" />
+      </div>
+      <div class="btn-row">
+        <button class="btn gray full" id="notifBtn"><i class="fa-solid fa-bell"></i> Enable Notifications</button>
+        <button class="btn red full" id="resetBtn"><i class="fa-solid fa-trash"></i> Reset App</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn green full" id="saveSettingsBtn"><i class="fa-solid fa-check"></i> Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tank / Food Modal -->
+  <div class="overlay" id="tankOverlay">
+    <div class="sheet">
+      <h3 id="tankModalTitle">Add Tank</h3>
+      <p>Set tank name, feeding count, and food profile. Sunday is treated as a no-feed dieting day by default.</p>
+
+      <div class="field">
+        <label>Tank Name</label>
+        <input id="tankNameInput" placeholder="Tank 1" />
+      </div>
+      <div class="field">
+        <label>Feed Count Per Day</label>
+        <input id="feedCountInput" type="number" min="1" placeholder="Example: 2" />
+      </div>
+      <div class="field">
+        <label>Food Name</label>
+        <input id="foodNameInput" placeholder="Food brand / mix name" />
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="field">
+          <label>Crude Protein %</label>
+          <input id="proteinInput" type="number" min="0" max="100" placeholder="%" />
+        </div>
+        <div class="field">
+          <label>Crude Fat %</label>
+          <input id="fatInput" type="number" min="0" max="100" placeholder="%" />
+        </div>
+        <div class="field">
+          <label>Crude Fiber %</label>
+          <input id="fiberInput" type="number" min="0" max="100" placeholder="%" />
+        </div>
+        <div class="field">
+          <label>Moisture %</label>
+          <input id="moistureInput" type="number" min="0" max="100" placeholder="%" />
+        </div>
+        <div class="field md:col-span-2">
+          <label>Ash / Minerals %</label>
+          <input id="ashInput" type="number" min="0" max="100" placeholder="%" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Feed Alarm Time</label>
+        <input id="foodTimeInput" type="time" value="08:00" />
+      </div>
+
+      <div class="btn-row">
+        <button class="btn gray full" id="cancelTankBtn">Cancel</button>
+        <button class="btn orange full" id="saveTankBtn">Save Tank</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const STORAGE_KEY = "pj_aqua_care_state_v3";
+  const DEFAULTS = {
+    volume: 0,
+    length: "",
+    waterHeight: "",
+    width: "",
+    glassThickness: "",
+    mode: "basic",
+    startTime: "08:00",
+    lang: "en",
+    : "",
+    model: "Qwen/Qwen3-4B",
+    tanks: [],
+    todayKey: "",
+    missionDone: {},
+    activePage: "guidancePage"
+  };
+
+  const PLAN_LIBRARY = {
+    basic: {
+      title: "Basic Non-CO2",
+      table: [
+        { day: "Sunday", items: [{ name: "K++", dose100: 1.5, unit: "ml" }], note: "One dose only" },
+        { day: "Monday", items: [
+          { name: "Plant Food", dose100: 1.0, unit: "ml" },
+          { name: "Plant Health Formula", dose100: 1.0, unit: "ml" },
+          { name: "Phyto-CARB", dose100: 1.0, unit: "ml" }
+        ], note: "Keep 2-hour gaps" },
+        { day: "Tuesday", items: [{ name: "K++", dose100: 1.5, unit: "ml" }], note: "One dose only" },
+        { day: "Wednesday", items: [
+          { name: "Plant Food", dose100: 1.0, unit: "ml" },
+          { name: "Plant Health Formula", dose100: 1.0, unit: "ml" },
+          { name: "Phyto-CARB", dose100: 1.0, unit: "ml" }
+        ], note: "Keep 2-hour gaps" },
+        { day: "Thursday", items: [{ name: "K++", dose100: 1.5, unit: "ml" }], note: "One dose only" },
+        { day: "Friday", items: [
+          { name: "Plant Food", dose100: 1.0, unit: "ml" },
+          { name: "Plant Health Formula", dose100: 1.0, unit: "ml" },
+          { name: "Phyto-CARB", dose100: 1.0, unit: "ml" }
+        ], note: "Keep 2-hour gaps" },
+        { day: "Saturday", items: [{ name: "Water Change", dose100: 50, unit: "%" }], note: "50% water change day" }
+      ],
+      special: [
+        { name: "K++", dose100: 1.5, unit: "ml" },
+        { name: "MicroLife-S2", dose100: 5, unit: "ml" },
+        { name: "Stress Heal", dose100: 5, unit: "ml" }
+      ],
+      rules: "Always maintain a 2-hour gap between different liquid medicines. Sunday is the main water-change day. Use the 30th of each month for the special treatment only. The schedule is scaled automatically by tank volume."
+    },
+    moderate: {
+      title: "Moderate CO2",
+      table: [
+        { day: "Sunday", items: [{ name: "K++", dose100: 2, unit: "ml" }], note: "One dose only" },
+        { day: "Monday", items: [
+          { name: "Plant Food", dose100: 2, unit: "ml" },
+          { name: "Plant Health Formula", dose100: 2, unit: "ml" },
+          { name: "Phyto-CARB", dose100: 2, unit: "ml" }
+        ], note: "Keep 2-hour gaps" },
+        { day: "Tuesday", items: [{ name: "K++", dose100: 2, unit: "ml" }], note: "One dose only" },
+        { day: "Wednesday", items: [
+          { name: "Plant Food", dose100: 2, unit: "ml" },
+          { name: "Plant Health Formula", dose100: 2, unit: "ml" },
+          { name: "Phyto-CARB", dose100: 2, unit: "ml" }
+        ], note: "Keep 2-hour gaps" },
+        { day: "Thursday", items: [{ name: "K++", dose100: 2, unit: "ml" }], note: "One dose only" },
+        { day: "Friday", items: [
+          { name: "Plant Food", dose100: 2, unit: "ml" },
+          { name: "Plant Health Formula", dose100: 2, unit: "ml" },
+          { name: "Phyto-CARB", dose100: 2, unit: "ml" }
+        ], note: "Keep 2-hour gaps" },
+        { day: "Saturday", items: [{ name: "Water Change", dose100: 50, unit: "%" }], note: "50% water change day" }
+      ],
+      special: [
+        { name: "K++", dose100: 2, unit: "ml" },
+        { name: "MicroLife-S2", dose100: 10, unit: "ml" },
+        { name: "Stress Heal", dose100: 10, unit: "ml" }
+      ],
+      rules: "Keep a 2-hour gap between different liquid medicines. Sunday remains water-change day. The 30th unlocks the special treatment."
+    },
+    pro: {
+      title: "Professional CO2",
+      table: [
+        { day: "Sunday", items: [{ name: "K++", dose100: 2, unit: "ml" }], note: "One dose only" },
+        { day: "Monday", items: [
+          { name: "Plant Food", dose100: 2, unit: "ml" },
+          { name: "Plant Health Formula", dose100: 2, unit: "ml" },
+          { name: "Phyto-CARB", dose100: 2, unit: "ml" }
+        ], note: "Keep 2-hour gaps" },
+        { day: "Tuesday", items: [{ name: "K++", dose100: 2, unit: "ml" }], note: "One dose only" },
+        { day: "Wednesday", items: [
+          { name: "Plant Food", dose100: 2, unit: "ml" },
+          { name: "Plant Health Formula", dose100: 2, unit: "ml" },
+          { name: "Phyto-CARB", dose100: 2, unit: "ml" }
+        ], note: "Keep 2-hour gaps" },
+        { day: "Thursday", items: [{ name: "K++", dose100: 2, unit: "ml" }], note: "One dose only" },
+        { day: "Friday", items: [
+          { name: "Plant Food", dose100: 2, unit: "ml" },
+          { name: "Plant Health Formula", dose100: 2, unit: "ml" },
+          { name: "Phyto-CARB", dose100: 2, unit: "ml" }
+        ], note: "Keep 2-hour gaps" },
+        { day: "Saturday", items: [{ name: "Water Change", dose100: 50, unit: "%" }], note: "50% water change day" }
+      ],
+      special: [
+        { name: "K++", dose100: 2, unit: "ml" },
+        { name: "MicroLife-S2", dose100: 10, unit: "ml" },
+        { name: "Stress Heal", dose100: 10, unit: "ml" }
+      ],
+      rules: "Use the same 2-hour gap rule and keep the 30th unlock for the special treatment."
+    }
+  };
+
+  const state = loadState();
+  let currentPage = state.activePage || "guidancePage";
+  let currentTankEditId = null;
+  let ruleLang = state.lang || "en";
+  let missionTimerHandle = null;
+  let dailyTicker = null;
+  let notificationGranted = false;
+  let activeCharts = {};
+  const speech = window.speechSynthesis;
+
+  function loadState(){
+    try{
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if(!saved) return structuredClone(DEFAULTS);
+      const parsed = JSON.parse(saved);
+      return {...structuredClone(DEFAULTS), ...parsed};
+    }catch(e){
+      return structuredClone(DEFAULTS);
+    }
+  }
+  function saveState(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function todayKey(){
+    return new Date().toISOString().slice(0,10);
+  }
+
+  function isThirty(){
+    return new Date().getDate() === 30;
+  }
+
+  function formatDateLong(d = new Date()){
+    return d.toLocaleDateString("en-US", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+  }
+  function formatWeekday(d = new Date()){
+    return d.toLocaleDateString("en-US", { weekday:"long" });
+  }
+  function fmtTime(hhmm){
+    const [h,m] = hhmm.split(":").map(Number);
+    const ampm = h >= 12 ? "PM" : "AM";
+    const dh = h % 12 || 12;
+    return `${dh}:${String(m).padStart(2,"0")} ${ampm}`;
+  }
+  function addHours(hhmm, hrs){
+    let [h,m] = hhmm.split(":").map(Number);
+    h = (h + hrs) % 24;
+    return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
+  }
+  function money(n){
+    return Number.isFinite(n) ? n.toFixed(1) : "0.0";
+  }
+  function tankVolumeText(){
+    return `${Math.round(state.volume || 0)} L Tank`;
+  }
+
+  function toast(message, type="success"){
+    const wrap = document.getElementById("toastWrap");
+    const el = document.createElement("div");
+    el.className = `toast ${type}`;
+    el.innerHTML = `<div><strong>${type === "success" ? "Done" : type === "warn" ? "Heads up" : "Notice"}</strong><div>${message}</div></div><button class="icon-btn" style="background:rgba(255,255,255,.12); color:#fff; border-color:rgba(255,255,255,.12)"><i class="fa-solid fa-xmark"></i></button>`;
+    el.querySelector("button").onclick = () => el.remove();
+    wrap.appendChild(el);
+    setTimeout(() => { if(el.isConnected) el.remove(); }, 4200);
+  }
+
+  function beep(kind="medicine"){
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    const profile = kind === "food"
+      ? {f1:880, f2:660, dur:0.16}
+      : {f1:660, f2:990, dur:0.18};
+
+    osc.type = "sine";
+    osc.frequency.value = profile.f1;
+    gain.gain.value = 0.001;
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.02);
+    osc.frequency.exponentialRampToValueAtTime(profile.f2, ctx.currentTime + profile.dur);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + profile.dur + 0.02);
+    osc.stop(ctx.currentTime + profile.dur + 0.05);
+    setTimeout(() => ctx.close(), 400);
+  }
+
+  function notify(title, body, kind="medicine"){
+    toast(body, kind === "food" ? "warn" : "success");
+    beep(kind);
+    if("Notification" in window && Notification.permission === "granted"){
+      try{ new Notification(title, { body }); }catch(e){}
+    }
+  }
+
+  function updateHeader(){
+    document.getElementById("todayMeta").textContent = formatDateLong();
+    document.getElementById("tankChip").textContent = tankVolumeText();
+    document.getElementById("planChip").textContent = PLAN_LIBRARY[state.mode].title;
+    document.getElementById("volumeText").textContent = `${Math.round(state.volume || 0)} L`;
+    document.getElementById("modeText").textContent = PLAN_LIBRARY[state.mode].title;
+    document.getElementById("missionDayText").textContent = `${formatWeekday()} Routine`;
+    document.getElementById("startTimeLabel").textContent = fmtTime(state.startTime || "08:00");
+    document.getElementById("missionStatusLabel").textContent = state.volume ? "Ready" : "Setup needed";
+    document.getElementById("tankCountText").textContent = String(state.tanks.length);
+    document.getElementById("aiStatus").textContent = state. ? "Key connected" : "No key";
+    document.getElementById("aiModelLabel").textContent = state.model || "Qwen/Qwen3-4B";
+    document.getElementById("scaleTag").textContent = `Scaled to ${Math.round(state.volume || 0)} L`;
+    document.getElementById("specialTag").textContent = isThirty() ? "Unlocked" : "Locked";
+    document.getElementById("specialDoseCard").classList.toggle("locked", !isThirty());
+    document.getElementById("specialK").textContent = `${scaledDose(1.5)} ml`;
+    document.getElementById("specialMicro").textContent = `${scaledDose(5)} ml`;
+    document.getElementById("specialStress").textContent = `${scaledDose(5)} ml`;
+    document.getElementById("specialChk").disabled = !isThirty();
+    document.getElementById("specialChk2").disabled = !isThirty();
+    document.getElementById("specialChk3").disabled = !isThirty();
+    document.getElementById("specialTime").textContent = isThirty() ? "Ready today" : "30th only";
+    document.getElementById("specialTime2").textContent = isThirty() ? "Ready today" : "30th only";
+    document.getElementById("specialTime3").textContent = isThirty() ? "Ready today" : "30th only";
+    document.getElementById("settingsBtn").title = "Settings";
+  }
+
+  function scaledDose(base){
+    const factor = Math.max((state.volume || 0) / 100, 0.1);
+    return money(base * factor);
+  }
+
+  function generateDoseTable(){
+    const plan = PLAN_LIBRARY[state.mode];
+    const tbody = document.getElementById("doseTable");
+    const scaleFactor = Math.max((state.volume || 0) / 100, 0.1);
+    tbody.innerHTML = plan.table.map(day => {
+      const rows = day.items.map((it, idx) => {
+        const scaled = it.unit === "%" ? `${money(it.dose100)}%` : `${money(it.dose100 * scaleFactor)} ${it.unit}`;
+        return `
+          <tr>
+            <td>${idx === 0 ? `<strong>${day.day}</strong>` : ""}</td>
+            <td>${it.name}</td>
+            <td><span class="tag ${it.unit === "%" ? "gray" : "orange"}">${scaled}</span></td>
+            <td>${idx === 0 ? day.note : ""}</td>
+          </tr>`;
+      }).join("");
+      return rows;
+    }).join("");
+    document.getElementById("ruleText").textContent = plan.rules;
+  }
+
+  function todaysPlan(){
+    const plan = PLAN_LIBRARY[state.mode];
+    const dayName = formatWeekday();
+    return plan.table.find(x => x.day === dayName) || plan.table[0];
+  }
+
+  function buildMissionList(){
+    const today = todayKey();
+    const doneToday = state.missionDone[today] || {};
+    const plan = todaysPlan();
+    const factor = Math.max((state.volume || 0) / 100, 0.1);
+    const items = plan.items.map((it, idx) => ({
+      ...it,
+      doseText: it.unit === "%" ? `${money(it.dose100)}%` : `${money(it.dose100 * factor)} ${it.unit}`,
+      timeText: idx === 0
+        ? fmtTime(state.startTime || "08:00")
+        : fmtTime(addHours(state.startTime || "08:00", idx * 2))
+    }));
+
+    const list = document.getElementById("missionList");
+    list.innerHTML = "";
+
+    if (plan.day === "Saturday") {
+      list.innerHTML = `
+        <div class="card notice">
+          <strong>Water change day:</strong> This day is reserved for a 50% water change. No medicine tick is needed.
+        </div>
+      `;
+      document.getElementById("missionStatusLabel").textContent = "Water change only";
+      return;
+    }
+
+    items.forEach((item, idx) => {
+      const key = `${today}-${idx}`;
+      const checked = !!doneToday[key];
+      const mission = document.createElement("div");
+      mission.className = `mission ${checked ? "done" : ""}`;
+      mission.id = `mission-${idx}`;
+      mission.innerHTML = `
+        <div class="left">
+          <input type="checkbox" class="chk" id="chk-${idx}" ${checked ? "checked" : ""}>
+          <div>
+            <h4>${item.name}</h4>
+            <p>${item.doseText}</p>
+          </div>
+        </div>
+        <div style="text-align:right">
+          ${idx > 0 ? `<div class="time-badge wait hidden" id="timer-${idx}">Waiting 2h...</div>` : ""}
+          <div class="time-badge ${checked ? "ready" : ""}">${item.timeText}</div>
+        </div>
+      `;
+      list.appendChild(mission);
+
+      const chk = mission.querySelector(`#chk-${idx}`);
+      chk.addEventListener("change", () => toggleMission(idx));
+    });
+
+    restoreTimers();
+  }
+
+  function toggleMission(idx){
+    const today = todayKey();
+    state.missionDone[today] ||= {};
+    const key = `${today}-${idx}`;
+    const chk = document.getElementById(`chk-${idx}`);
+    const mission = document.getElementById(`mission-${idx}`);
+
+    if(chk.checked){
+      state.missionDone[today][key] = true;
+      mission.classList.add("done");
+      saveState();
+      notify("Mission complete", `${todaysPlan().items[idx].name} marked as done.`, "medicine");
+
+      const next = idx + 1;
+      const nextCard = document.getElementById(`timer-${next}`);
+      if(nextCard){
+        nextCard.classList.remove("hidden");
+        startMissionCountdown(next);
+      }
+    }else{
+      delete state.missionDone[today][key];
+      mission.classList.remove("done");
+      saveState();
+    }
+  }
+
+  function startMissionCountdown(idx){
+    const today = todayKey();
+    const endKey = `missionTimerEnd-${today}-${idx}`;
+    const endAt = Number(localStorage.getItem(endKey)) || (Date.now() + 2*60*60*1000);
+    localStorage.setItem(endKey, String(endAt));
+    renderTimer(idx);
+    clearInterval(missionTimerHandle);
+    missionTimerHandle = setInterval(() => renderTimer(idx), 1000);
+  }
+
+  function renderTimer(idx){
+    const today = todayKey();
+    const endKey = `missionTimerEnd-${today}-${idx}`;
+    const timer = document.getElementById(`timer-${idx}`);
+    if(!timer) return;
+    const endAt = Number(localStorage.getItem(endKey) || "0");
+    if(!endAt){
+      timer.classList.add("hidden");
+      return;
+    }
+    const diff = endAt - Date.now();
+    if(diff <= 0){
+      timer.textContent = "READY!";
+      timer.classList.remove("wait");
+      timer.classList.add("ready");
+      timer.classList.remove("hidden");
+      localStorage.removeItem(endKey);
+      notify("Timer ready", `Next medicine is ready now.`, "medicine");
+      clearInterval(missionTimerHandle);
+      return;
+    }
+    const total = Math.floor(diff / 1000);
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    timer.textContent = `${h}h ${m}m ${s}s`;
+    timer.classList.remove("hidden");
+  }
+
+  function restoreTimers(){
+    const today = todayKey();
+    const plan = todaysPlan();
+    for(let idx = 1; idx < plan.items.length; idx++){
+      if(localStorage.getItem(`missionTimerEnd-${today}-${idx}`)){
+        renderTimer(idx);
+        missionTimerHandle = setInterval(() => renderTimer(idx), 1000);
+      }
+    }
+  }
+
+  function calcVolume(){
+    const L = parseFloat(document.getElementById("tankLength").value);
+    const H = parseFloat(document.getElementById("waterHeight").value);
+    const W = parseFloat(document.getElementById("tankWidth").value);
+    const T = parseFloat(document.getElementById("glassThickness").value);
+    const mode = document.getElementById("planMode").value;
+    if(!L || !H || !W || !T){
+      toast("Please fill all tank fields first.", "error");
+      return null;
+    }
+    const t = T / 10; // mm to cm
+    const innerL = Math.max(L - 2*t, 1);
+    const innerW = Math.max(W - 2*t, 1);
+    const volume = (innerL * innerW * H) / 1000;
+    state.length = L;
+    state.waterHeight = H;
+    state.width = W;
+    state.glassThickness = T;
+    state.volume = volume;
+    state.mode = mode;
+    state.todayKey = todayKey();
+    state.activePage = "guidancePage";
+    saveState();
+    return volume;
+  }
+
+  function closeOverlay(id){ document.getElementById(id).classList.remove("show"); }
+  function openOverlay(id){ document.getElementById(id).classList.add("show"); }
+
+  function openTankModal(editId = null){
+    currentTankEditId = editId;
+    const modalTitle = document.getElementById("tankModalTitle");
+    const tank = state.tanks.find(t => t.id === editId);
+    modalTitle.textContent = tank ? "Edit Tank" : "Add Tank";
+    document.getElementById("tankNameInput").value = tank?.name || `Tank ${state.tanks.length + 1}`;
+    document.getElementById("feedCountInput").value = tank?.feedCount || 2;
+    document.getElementById("foodNameInput").value = tank?.food?.name || "";
+    document.getElementById("proteinInput").value = tank?.food?.protein ?? "";
+    document.getElementById("fatInput").value = tank?.food?.fat ?? "";
+    document.getElementById("fiberInput").value = tank?.food?.fiber ?? "";
+    document.getElementById("moistureInput").value = tank?.food?.moisture ?? "";
+    document.getElementById("ashInput").value = tank?.food?.ash ?? "";
+    document.getElementById("foodTimeInput").value = tank?.feedTime || "08:00";
+    openOverlay("tankOverlay");
+  }
+
+  function saveTank(){
+    const tank = {
+      id: currentTankEditId || Date.now(),
+      name: document.getElementById("tankNameInput").value.trim(),
+      feedCount: Math.max(parseInt(document.getElementById("feedCountInput").value || "1", 10), 1),
+      feedTime: document.getElementById("foodTimeInput").value || "08:00",
+      food: {
+        name: document.getElementById("foodNameInput").value.trim(),
+        protein: parseFloat(document.getElementById("proteinInput").value || "0") || 0,
+        fat: parseFloat(document.getElementById("fatInput").value || "0") || 0,
+        fiber: parseFloat(document.getElementById("fiberInput").value || "0") || 0,
+        moisture: parseFloat(document.getElementById("moistureInput").value || "0") || 0,
+        ash: parseFloat(document.getElementById("ashInput").value || "0") || 0
+      }
+    };
+    if(!tank.name || !tank.food.name){
+      toast("Tank name and food name are required.", "error");
+      return;
+    }
+    const idx = state.tanks.findIndex(t => t.id === tank.id);
+    if(idx >= 0) state.tanks[idx] = tank; else state.tanks.unshift(tank);
+    saveState();
+    renderTanks();
+    closeOverlay("tankOverlay");
+    toast(`Saved ${tank.name}.`, "success");
+    scheduleFoodAlarms(tank);
+  }
+
+  function deleteTank(id){
+    state.tanks = state.tanks.filter(t => t.id !== id);
+    saveState();
+    renderTanks();
+    toast("Tank removed.", "warn");
+  }
+
+  function renderTanks(){
+    const wrap = document.getElementById("tankList");
+    if(!state.tanks.length){
+      wrap.innerHTML = `
+        <div class="card notice" style="text-align:center; padding:32px 18px;">
+          <div style="font-size:44px; color:#9ca3af; margin-bottom:8px;"><i class="fa-solid fa-fish-fins"></i></div>
+          <strong>No tanks added yet.</strong>
+          <div class="muted" style="margin-top:6px;">Tap the plus button to add Tank 1.</div>
+        </div>`;
+      return;
+    }
+    wrap.innerHTML = state.tanks.map(t => {
+      const total = [t.food.protein, t.food.fat, t.food.fiber, t.food.moisture, t.food.ash].reduce((a,b)=>a+Number(b||0),0) || 1;
+      return `
+        <div class="tank-card">
+          <div class="tank-head">
+            <div class="tank-title">
+              <h4>${t.name}</h4>
+              <div class="sub">Feed ${t.feedCount}x/day • Alarm ${fmtTime(t.feedTime || "08:00")} • Sunday diet day</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="icon-btn green" onclick="window.__editTank(${t.id})"><i class="fa-solid fa-pen"></i></button>
+              <button class="icon-btn orange" onclick="window.__deleteTank(${t.id})"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+
+          <div class="tank-body">
+            <canvas id="chart-${t.id}" width="130" height="130"></canvas>
+            <div>
+              <div class="tag green" style="margin-bottom:10px;">${t.food.name}</div>
+              <div class="nutrition-list">
+                <div class="nutrition-row"><span>Protein</span><span>${Number(t.food.protein||0)}%</span></div>
+                <div class="nutrition-row"><span>Fat</span><span>${Number(t.food.fat||0)}%</span></div>
+                <div class="nutrition-row"><span>Fiber</span><span>${Number(t.food.fiber||0)}%</span></div>
+                <div class="nutrition-row"><span>Moisture</span><span>${Number(t.food.moisture||0)}%</span></div>
+                <div class="nutrition-row"><span>Ash</span><span>${Number(t.food.ash||0)}%</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tank-footer">
+            <div class="muted small">Tap the chart to see nutrition share</div>
+            <button class="btn green" style="padding:10px 12px; border-radius:14px" onclick="window.__feedNow(${t.id})"><i class="fa-solid fa-bell"></i> Feed Alert</button>
+          </div>
+        </div>`;
+    }).join("");
+
+    state.tanks.forEach(t => drawTankChart(t));
+  }
+
+  function drawTankChart(t){
+    const el = document.getElementById(`chart-${t.id}`);
+    if(!el) return;
+    if(activeCharts[t.id]){ activeCharts[t.id].destroy(); }
+    activeCharts[t.id] = new Chart(el, {
+      type: "doughnut",
+      data: {
+        labels: ["Protein","Fat","Fiber","Moisture","Ash"],
+        datasets: [{
+          data: [t.food.protein||0, t.food.fat||0, t.food.fiber||0, t.food.moisture||0, t.food.ash||0],
+          backgroundColor: ["#2f7d32", "#ff8a00", "#facc15", "#38bdf8", "#94a3b8"],
+          borderWidth: 0,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: false,
+        cutout: "70%",
+        plugins: { legend: { display:false }, tooltip: { enabled:true } }
+      }
+    });
+  }
+
+  function buildAiContext(){
+    const plan = todaysPlan();
+    const volume = Math.round(state.volume || 0);
+    const tankNames = state.tanks.map(t => t.name).join(", ") || "No tanks yet";
+    return `Tank volume: ${volume} L
+Plan: ${PLAN_LIBRARY[state.mode].title}
+Today: ${formatWeekday()}
+Today's plan: ${plan.items.map(x => x.name).join(", ")}
+Tanks: ${tankNames}`;
+  }
+
+  async function askAi(){
+    const prompt = document.getElementById("aiPrompt").value.trim();
+    if(!prompt){ toast("Please type a question first.", "error"); return; }
+    addChat("user", prompt);
+    const  = state. || "";
+    const model = state.model || "Qwen/Qwen3-4B";
+    if(!){
+      const answer = ` key is not set.
+
+Current context:
+${buildAiContext()}
+
+Suggested action: open Settings and paste your  API key.`;
+      addChat("bot", answer);
+      return;
+    }
+
+    document.getElementById("aiStatus").textContent = "Thinking...";
+    try{
+      const body = {
+        model,
+        messages: [
+          { role: "system", content: "You are PJ Aqua Care assistant. Give clear planted tank advice in short mobile-friendly language. Always respect the user's plan and tank size." },
+          { role: "user", content: `${buildAiContext()}
+
+Question: ${prompt}` }
+        ],
+        max_tokens: 220,
+        temperature: 0.4
+      };
+
+      const res = await fetch("https://api.bytez.com/models/v2/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": 
+        },
+        body: JSON.stringify(body)
+      });
+
+      const data = await res.json();
+      const text = data?.choices?.[0]?.message?.content
+        || data?.output?.content
+        || data?.output_text
+        || data?.output?.[0]?.content
+        || JSON.stringify(data);
+
+      addChat("bot", text);
+      document.getElementById("aiStatus").textContent = "Key connected";
+    }catch(err){
+      addChat("error", " request failed. Check your key, model name, or network access.");
+      document.getElementById("aiStatus").textContent = "Offline fallback";
+    }
+  }
+
+  function addChat(kind, text){
+    const box = document.getElementById("chatBox");
+    const el = document.createElement("div");
+    el.className = `bubble ${kind === "user" ? "user" : kind === "error" ? "err" : "bot"}`;
+    el.textContent = text;
+    box.appendChild(el);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function scheduleFoodAlarms(tank){
+    const feedTime = tank.feedTime || "08:00";
+    const now = new Date();
+    const [h,m] = feedTime.split(":").map(Number);
+    const first = new Date();
+    first.setHours(h,m,0,0);
+
+    if(first.getTime() < now.getTime()){
+      first.setDate(first.getDate() + 1);
+    }
+
+    const fire = () => {
+      notify("Food time", `${tank.name}: ${tank.food.name} feeding time.`, "food");
+      first.setDate(first.getDate() + 1);
+      setTimeout(fire, first.getTime() - Date.now());
+    };
+
+    const delay = first.getTime() - Date.now();
+    setTimeout(fire, Math.max(delay, 1000));
+  }
+
+  function scheduleAllFoodAlarms(){
+    state.tanks.forEach(scheduleFoodAlarms);
+  }
+
+  function ensureNotificationPermission(){
+    if(!("Notification" in window)){
+      toast("Notifications are not supported in this browser.", "error");
+      return;
+    }
+    Notification.requestPermission().then(p => {
+      notificationGranted = p === "granted";
+      toast(notificationGranted ? "Notifications enabled." : "Notification permission not granted.", notificationGranted ? "success" : "warn");
+    });
+  }
+
+  function resetApp(){
+    if(!confirm("Delete all saved data from this device?")) return;
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+
+  function showPage(page){
+    currentPage = page;
+    state.activePage = page;
+    saveState();
+    document.querySelectorAll(".page").forEach(s => s.classList.remove("active"));
+    document.getElementById(page).classList.add("active");
+    document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
+    document.querySelector(`.nav button[data-page="${page}"]`)?.classList.add("active");
+    if(page === "foodPage") renderTanks();
+    if(page === "missionsPage") buildMissionList();
+  }
+
+  function applyRuleTranslate(){
+    const el = document.getElementById("ruleText");
+    if(ruleLang === "en"){
+      el.textContent = "Hamesha alag liquid medicines ke beech 2 ghante ka gap rakhen. Sunday ko main water-change day rakhen. Month ke 30th ko special treatment use karein. Tank volume ke hisaab se schedule automatically scale hota hai.";
+      ruleLang = "hi";
+    }else{
+      el.textContent = PLAN_LIBRARY[state.mode].rules;
+      ruleLang = "en";
+    }
+    state.lang = ruleLang;
+    saveState();
+  }
+
+  function readRules(){
+    const text = document.getElementById("ruleText").textContent;
+    if(!("speechSynthesis" in window)) return;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = ruleLang === "hi" ? "hi-IN" : "en-US";
+    speech.cancel();
+    speech.speak(u);
+  }
+
+  function applySetup(){
+    const volume = calcVolume();
+    if(volume === null) return;
+    document.getElementById("setupOverlay").classList.remove("show");
+    updateHeader();
+    generateDoseTable();
+    buildMissionList();
+    renderTanks();
+    saveState();
+    toast(`Tank set to ${money(volume)} L.`, "success");
+  }
+
+  function syncSettingsFields(){
+    document.getElementById("startTimeInput").value = state.startTime || "08:00";
+    document.getElementById("modeInput").value = state.mode || "basic";
+    document.getElementById("bytezKeyInput").value = state. || "";
+    document.getElementById("bytezModelInput").value = state.model || "Qwen/Qwen3-4B";
+  }
+
+  function saveSettings(){
+    state.startTime = document.getElementById("startTimeInput").value || "08:00";
+    state.mode = document.getElementById("modeInput").value;
+    state. = document.getElementById("bytezKeyInput").value.trim();
+    state.model = document.getElementById("bytezModelInput").value.trim() || "Qwen/Qwen3-4B";
+    saveState();
+    updateHeader();
+    generateDoseTable();
+    buildMissionList();
+    renderTanks();
+    scheduleAllFoodAlarms();
+    toast("Settings saved.", "success");
+    document.getElementById("settingsOverlay").classList.remove("show");
+  }
+
+  function useTank(){
+    state.length = 60;
+    state.waterHeight = 40;
+    state.width = 30;
+    state.glassThickness = 6;
+    state.mode = "basic";
+    state.volume = ((60 - 1.2) * (30 - 1.2) * 40) / 1000;
+    state.startTime = "08:00";
+    saveState();
+    document.getElementById("tankLength").value = 60;
+    document.getElementById("waterHeight").value = 40;
+    document.getElementById("tankWidth").value = 30;
+    document.getElementById("glassThickness").value = 6;
+    document.getElementById("planMode").value = "basic";
+    applySetup();
+  }
+
+  function init(){
+    // Daily reset of mission completion state
+    const tk = todayKey();
+    if(state.todayKey !== tk){
+      state.todayKey = tk;
+      state.missionDone = {};
+      saveState();
+    }
+
+    updateHeader();
+    generateDoseTable();
+    buildMissionList();
+    renderTanks();
+    syncSettingsFields();
+
+    // show setup only on first run
+    if(state.volume && state.length){
+      document.getElementById("setupOverlay").classList.remove("show");
+    }
+
+    // restore active page
+    showPage(state.activePage || "guidancePage");
+
+    scheduleAllFoodAlarms();
+
+    // periodic date refresh
+    setInterval(() => {
+      updateHeader();
+      const now = todayKey();
+      if(state.todayKey !== now){
+        state.todayKey = now;
+        state.missionDone = {};
+        saveState();
+        buildMissionList();
+        updateHeader();
+      }
+    }, 30000);
+  }
+
+  // Expose event helpers
+  window.__editTank = (id) => openTankModal(id);
+  window.__deleteTank = (id) => deleteTank(id);
+  window.__feedNow = (id) => {
+    const tank = state.tanks.find(t => t.id === id);
+    if(!tank) return;
+    notify("Food alarm", `${tank.name}: ${tank.food.name} feeding time.`, "food");
+  };
+
+  // Events
+  document.getElementById("continueSetupBtn").addEventListener("click", applySetup);
+  document.getElementById("skipSetupBtn").addEventListener("click", useTank);
+  document.getElementById("settingsBtn").addEventListener("click", () => { syncSettingsFields(); openOverlay("settingsOverlay"); });
+  document.getElementById("saveSettingsBtn").addEventListener("click", saveSettings);
+  document.getElementById("resetBtn").addEventListener("click", resetApp);
+  document.getElementById("notifBtn").addEventListener("click", ensureNotificationPermission);
+  document.getElementById("addTankFab").addEventListener("click", () => openTankModal());
+  document.getElementById("cancelTankBtn").addEventListener("click", () => closeOverlay("tankOverlay"));
+  document.getElementById("saveTankBtn").addEventListener("click", saveTank);
+  document.getElementById("readRuleBtn").addEventListener("click", readRules);
+  document.getElementById("translateRuleBtn").addEventListener("click", applyRuleTranslate);
+  document.getElementById("askAiBtn").addEventListener("click", askAi);
+  document.getElementById("fillPromptBtn").addEventListener("click", () => {
+    document.getElementById("aiPrompt").value = `My tank is ${Math.round(state.volume || 0)}L and my plan is ${PLAN_LIBRARY[state.mode].title}. Today is ${formatWeekday()}. Tell me what I should do next.`;
+  });
+
+  document.querySelectorAll(".nav button").forEach(btn => {
+    btn.addEventListener("click", () => showPage(btn.dataset.page));
+  });
+
+  // Swipe between pages
+  let sx = 0, sy = 0;
+  document.body.addEventListener("touchstart", (e) => {
+    sx = e.changedTouches[0].clientX;
+    sy = e.changedTouches[0].clientY;
+  }, {passive:true});
+  document.body.addEventListener("touchend", (e) => {
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if(Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy)) return;
+    const pages = ["guidancePage", "missionsPage", "foodPage", "aiPage"];
+    let idx = pages.indexOf(currentPage);
+    if(dx < 0) idx = Math.min(pages.length - 1, idx + 1);
+    else idx = Math.max(0, idx - 1);
+    showPage(pages[idx]);
+  }, {passive:true});
+
+  document.getElementById("chatBox").addEventListener("click", () => {
+    const active = document.activeElement;
+    if(active && active.blur) active.blur();
+  });
+
+  // close overlays on outside tap
+  ["settingsOverlay","tankOverlay"].forEach(id => {
+    document.getElementById(id).addEventListener("click", (e) => {
+      if(e.target.id === id) closeOverlay(id);
+    });
+  });
+
+  // close setup only if already configured
+  if(state.volume && state.length){
+    document.getElementById("setupOverlay").classList.remove("show");
+  }
+
+  init();
+
+})();
+
+// Calculate safety score (simple logic)
+function calculateSafety(food){
+    let score = (food.protein + food.fat) - (food.ash + food.moisture);
+    let safePercent = Math.max(0, Math.min(100, score));
+    return safePercent;
+}
+
+</script>
+</body>
+</html>
